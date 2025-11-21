@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TechnicianHub - Sistema Técnico</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        :root {
+            --primary-os: #2c3e50;
+            --primary-orc: #27ae60;
+            --primary-rec: #195e38;
+            --bg-color: #f0f2f5;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        /* Header */
+        .header {
+            background-color: #333;
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            cursor: pointer;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            background-color: #e9ecef;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .tab.active-os { background-color: var(--primary-os); color: white; }
+        .tab.active-orc { background-color: var(--primary-orc); color: white; }
+        .tab.active-rec { background-color: var(--primary-rec); color: white; }
+
+        /* Conteúdo das Abas */
+        .tab-content {
+            display: none;
+            padding: 20px;
+            animation: fadeIn 0.5s;
+        }
+        .tab-content.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Formulários */
+        .form-group { margin-bottom: 15px; }
+        .row { display: flex; gap: 15px; }
+        .col { flex: 1; }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box; /* Garante que padding não aumente largura */
+            font-family: inherit;
+        }
+
+        textarea { resize: vertical; }
+
+        /* Botões */
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: opacity 0.2s;
+        }
+        .btn:hover { opacity: 0.9; }
+        
+        .btn-os { background-color: var(--primary-os); }
+        .btn-orc { background-color: var(--primary-orc); }
+        .btn-rec { background-color: var(--primary-rec); }
+
+        /* Checkbox customizado */
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .checkbox-wrapper input { width: auto; }
+
+        /* Área de Configuração (Assinatura) */
+        .settings-area {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-top: 1px solid #ddd;
+        }
+        .signature-preview {
+            max-width: 150px;
+            max-height: 80px;
+            border: 1px dashed #ccc;
+            margin-top: 10px;
+            display: block;
+        }
+
+        @media (max-width: 600px) {
+            .row { flex-direction: column; gap: 0; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">TechnicianHub</div>
+
+    <div class="tabs">
+        <div class="tab active-os" onclick="openTab('os')">ORDEM DE SERVIÇO</div>
+        <div class="tab" onclick="openTab('orcamento')">ORÇAMENTO</div>
+        <div class="tab" onclick="openTab('recibo')">RECIBO</div>
+    </div>
+
+    <div id="os" class="tab-content active">
+        <h3 style="color: var(--primary-os)">Dados da Ordem de Serviço</h3>
+        <div class="form-group">
+            <label>Nome do Cliente:</label>
+            <input type="text" id="os_nome" oninput="saveData()">
+        </div>
+        <div class="row">
+            <div class="col form-group">
+                <label>CPF (Somente Números):</label>
+                <input type="text" id="os_cpf" onkeyup="maskCPF(this)" oninput="saveData()">
+            </div>
+            <div class="col form-group">
+                <label>Telefone:</label>
+                <input type="text" id="os_tel" onkeyup="maskPhone(this)" oninput="saveData()">
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Endereço:</label>
+            <input type="text" id="os_end" oninput="saveData()">
+        </div>
+        <hr>
+        <div class="form-group">
+            <label>Equipamento:</label>
+            <input type="text" id="os_equip" oninput="saveData()">
+        </div>
+        <div class="form-group">
+            <label>Defeito Apresentado:</label>
+            <input type="text" id="os_defeito" oninput="saveData()">
+        </div>
+        <div class="form-group">
+            <label>Parecer Técnico / Serviços Realizados:</label>
+            <textarea id="os_parecer" rows="3" oninput="saveData()"></textarea>
+        </div>
+        
+        <div class="checkbox-wrapper">
+            <label for="os_check_garantia">Imprimir Termos de Garantia no PDF?</label>
+            <input type="checkbox" id="os_check_garantia" checked onchange="saveData()">
+        </div>
+        
+        <div class="form-group">
+            <label>Termos de Garantia:</label>
+            <textarea id="os_garantia" rows="3" oninput="saveData()">90 dias para serviços e 30 dias para peças.
+Garantia cobre defeitos de fabricação ou serviço.
+Obrigatório apresentar este documento.</textarea>
+        </div>
+        <div class="row">
+            <div class="col form-group">
+                <label>Total Produtos (R$):</label>
+                <input type="text" id="os_val_prod" onkeyup="maskMoney(this)" oninput="saveData()">
+            </div>
+            <div class="col form-group">
+                <label>Total Serviços (R$):</label>
+                <input type="text" id="os_val_serv" onkeyup="maskMoney(this)" oninput="saveData()">
+            </div>
+        </div>
+        <button class="btn btn-os" onclick="generatePDF('OS')">EMITIR O.S. (PDF)</button>
+    </div>
+
+    <div id="orcamento" class="tab-content">
+        <h3 style="color: var(--primary-orc)">Dados do Orçamento</h3>
+        <div class="form-group">
+            <label>Nome do Cliente:</label>
+            <input type="text" id="orc_nome" oninput="saveData()">
+        </div>
+        <div class="row">
+            <div class="col form-group">
+                <label>CPF:</label>
+                <input type="text" id="orc_cpf" onkeyup="maskCPF(this)" oninput="saveData()">
+            </div>
+            <div class="col form-group">
+                <label>Telefone:</label>
+                <input type="text" id="orc_tel" onkeyup="maskPhone(this)" oninput="saveData()">
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Endereço:</label>
+            <input type="text" id="orc_end" oninput="saveData()">
+        </div>
+        <hr>
+        <div class="form-group">
+            <label>Equipamento:</label>
+            <input type="text" id="orc_equip" oninput="saveData()">
+        </div>
+        <div class="form-group">
+            <label>Problema Relatado:</label>
+            <input type="text" id="orc_problema" oninput="saveData()">
+        </div>
+        <div class="form-group">
+            <label>Serviços Propostos / Peças Necessárias:</label>
+            <textarea id="orc_desc" rows="4" oninput="saveData()"></textarea>
+        </div>
+        <div class="form-group">
+            <label>Validade do Orçamento:</label>
+            <input type="text" id="orc_validade" value="15 dias" oninput="saveData()">
+        </div>
+        <div class="row">
+            <div class="col form-group">
+                <label>Valor da Visita (R$):</label>
+                <input type="text" id="orc_val_visita" onkeyup="maskMoney(this)" oninput="saveData()">
+            </div>
+            <div class="col form-group">
+                <label>Valor Serviços/Peças (R$):</label>
+                <input type="text" id="orc_val_servicos" onkeyup="maskMoney(this)" oninput="saveData()">
+            </div>
+        </div>
+        <button class="btn btn-orc" onclick="generatePDF('ORC')">EMITIR ORÇAMENTO (PDF)</button>
+    </div>
+
+    <div id="recibo" class="tab-content">
+        <h3 style="color: var(--primary-rec)">Dados do Recibo</h3>
+        <div class="form-group">
+            <label>Data do Recibo (DD/MM/AAAA):</label>
+            <input type="text" id="rec_data" onkeyup="maskDate(this)" oninput="saveData()">
+        </div>
+        <div class="form-group">
+            <label>Nome da Empresa / Pagador:</label>
+            <input type="text" id="rec_nome" oninput="saveData()">
+        </div>
+        
+        <div class="form-group">
+            <label>Tipo de Documento:</label>
+            <div class="checkbox-wrapper">
+                <input type="radio" name="doc_type" value="CNPJ" checked onchange="toggleDocType()"> CNPJ
+                <input type="radio" name="doc_type" value="CPF" onchange="toggleDocType()"> CPF
+            </div>
+            <input type="text" id="rec_doc_num" placeholder="Digite o número" onkeyup="maskDocRecibo(this)" oninput="saveData()">
+        </div>
+        <hr>
+        <div class="form-group">
+            <label>Valor (R$):</label>
+            <input type="text" id="rec_valor" onkeyup="maskMoney(this)" oninput="saveData()">
+        </div>
+        <div class="form-group">
+            <label>Referente ao serviço de:</label>
+            <textarea id="rec_desc" rows="4" oninput="saveData()"></textarea>
+        </div>
+        <button class="btn btn-rec" onclick="generatePDF('REC')">EMITIR RECIBO (PDF)</button>
+    </div>
+
+    <div class="settings-area">
+        <h4>Configurações</h4>
+        <div class="form-group">
+            <label>Carregar Assinatura (Imagem):</label>
+            <small>Carregue uma vez, o navegador salvará.</small><br>
+            <input type="file" id="signature_file" accept="image/*" onchange="uploadSignature(this)">
+            <img id="sig_preview" class="signature-preview" alt="Pré-visualização da Assinatura" style="display:none;">
+            <button style="background:#888; width:auto; padding:5px 10px; font-size:0.8rem;" onclick="clearSignature()">Remover Assinatura</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // --- LÓGICA DE ABAS ---
+    function openTab(tabName) {
+        const contents = document.querySelectorAll('.tab-content');
+        const tabs = document.querySelectorAll('.tab');
+        
+        contents.forEach(c => c.classList.remove('active'));
+        tabs.forEach(t => {
+            t.classList.remove('active-os', 'active-orc', 'active-rec');
+            t.style.backgroundColor = '#e9ecef';
+            t.style.color = '#333';
+        });
+
+        document.getElementById(tabName).classList.add('active');
+        
+        // Style active tab button
+        const activeTabBtn = Array.from(tabs).find(t => t.innerText.includes(tabName === 'os' ? 'ORDEM' : (tabName === 'orcamento' ? 'ORÇAMENTO' : 'RECIBO')));
+        if(activeTabBtn) {
+            if(tabName === 'os') activeTabBtn.classList.add('active-os');
+            if(tabName === 'orcamento') activeTabBtn.classList.add('active-orc');
+            if(tabName === 'recibo') activeTabBtn.classList.add('active-rec');
+        }
+    }
+
+    // --- MÁSCARAS DE INPUT ---
+    function maskCPF(i) {
+        let v = i.value.replace(/\D/g,"");
+        v = v.replace(/(\d{3})(\d)/,"$1.$2");
+        v = v.replace(/(\d{3})(\d)/,"$1.$2");
+        v = v.replace(/(\d{3})(\d{1,2})$/,"$1-$2");
+        i.value = v;
+    }
+
+    function maskCNPJ(i) {
+        let v = i.value.replace(/\D/g,"");
+        v = v.replace(/^(\d{2})(\d)/,"$1.$2");
+        v = v.replace(/^(\d{2})\.(\d{3})(\d)/,"$1.$2.$3");
+        v = v.replace(/\.(\d{3})(\d)/,".$1/$2");
+        v = v.replace(/(\d{4})(\d)/,"$1-$2");
+        i.value = v;
+    }
+
+    function maskPhone(i) {
+        let v = i.value.replace(/\D/g,"");
+        v = v.replace(/^(\d{2})(\d)/g,"($1) $2");
+        v = v.replace(/(\d)(\d{4})$/,"$1-$2");
+        i.value = v;
+    }
+
+    function maskMoney(i) {
+        let v = i.value.replace(/\D/g,"");
+        v = (v/100).toFixed(2) + "";
+        v = v.replace(".", ",");
+        v = v.replace(/(\d)(\d{3})(\d{3}),/g, "$1.$2.$3,");
+        v = v.replace(/(\d)(\d{3}),/g, "$1.$2,");
+        i.value = v;
+    }
+
+    function maskDate(i) {
+        let v = i.value.replace(/\D/g,"");
+        v = v.replace(/(\d{2})(\d)/,"$1/$2");
+        v = v.replace(/(\d{2})(\d)/,"$1/$2");
+        i.value = v.substring(0, 10);
+    }
+
+    function maskDocRecibo(i) {
+        const isCPF = document.querySelector('input[name="doc_type"]:checked').value === 'CPF';
+        if(isCPF) maskCPF(i); else maskCNPJ(i);
+    }
+
+    function toggleDocType() {
+        document.getElementById('rec_doc_num').value = '';
+        saveData();
+    }
+
+    // --- PERSISTÊNCIA DE DADOS (LOCALSTORAGE) ---
+    function saveData() {
+        const inputs = document.querySelectorAll('input, textarea');
+        const data = {};
+        inputs.forEach(el => {
+            if (el.type === 'checkbox' || el.type === 'radio') {
+                if (el.checked) data[el.id || el.name] = el.value; // Para radio, salva o value do checked
+                if (el.type === 'checkbox') data[el.id] = el.checked;
+            } else if (el.type !== 'file') {
+                data[el.id] = el.value;
+            }
+        });
+        localStorage.setItem('technicianHubData', JSON.stringify(data));
+    }
+
+    function loadData() {
+        // Data inicial padrão para Recibo
+        const today = new Date().toLocaleDateString('pt-BR');
+        document.getElementById('rec_data').value = today;
+
+        const saved = localStorage.getItem('technicianHubData');
+        if (saved) {
+            const data = JSON.parse(saved);
+            for (const key in data) {
+                const el = document.getElementById(key);
+                if (el) {
+                    if (el.type === 'checkbox') el.checked = data[key];
+                    else el.value = data[key];
+                } else {
+                    // Handle radios by name
+                    const radios = document.getElementsByName(key);
+                    radios.forEach(r => {
+                        if (r.value === data[key]) r.checked = true;
+                    });
+                }
+            }
+        }
+        
+        // Carregar Assinatura
+        const savedSig = localStorage.getItem('technicianHubSignature');
+        if(savedSig) {
+            document.getElementById('sig_preview').src = savedSig;
+            document.getElementById('sig_preview').style.display = 'block';
+        }
+    }
+
+    // --- ASSINATURA (UPLOAD) ---
+    function uploadSignature(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64Img = e.target.result;
+                localStorage.setItem('technicianHubSignature', base64Img);
+                document.getElementById('sig_preview').src = base64Img;
+                document.getElementById('sig_preview').style.display = 'block';
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function clearSignature() {
+        localStorage.removeItem('technicianHubSignature');
+        document.getElementById('sig_preview').src = '';
+        document.getElementById('sig_preview').style.display = 'none';
+        document.getElementById('signature_file').value = '';
+    }
+
+    // --- GERAÇÃO DE PDF (JSPDF) ---
+    async function generatePDF(type) {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ unit: 'mm', format: 'a4' }); // A4 size: 210 x 297 mm
+
+        // Cores
+        const colors = {
+            OS: '#2c3e50',
+            ORC: '#27ae60',
+            REC: '#195e38'
+        };
+        const primaryColor = colors[type] || '#000';
+        const grayBg = '#f3f4f6';
+
+        // DADOS TÉCNICO (FIXO)
+        const tecnico = {
+            nome: "LUCAS SALGADO",
+            cargo: "TÉCNICO DE INFORMÁTICA",
+            cpf: "CPF: 158.444.917-93",
+            end1: "Rua Simeão Fernandes, 70",
+            end2: "Campo Grande - RJ"
+        };
+
+        // 1. HEADER
+        if (type !== 'REC') {
+            doc.setFillColor(primaryColor);
+            doc.rect(0, 0, 210, 40, 'F');
+            
+            doc.setTextColor(255, 255, 255);
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(22);
+            doc.text(tecnico.nome, 10, 15);
+            
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(12);
+            doc.text(tecnico.cargo, 10, 22);
+            
+            doc.setFontSize(9);
+            doc.text(tecnico.cpf, 200, 15, { align: 'right' });
+            doc.text(tecnico.end1, 200, 20, { align: 'right' });
+            doc.text(tecnico.end2, 200, 25, { align: 'right' });
+            doc.text(`Emissão: ${new Date().toLocaleDateString('pt-BR')}`, 200, 35, { align: 'right' });
+
+            // Box Título
+            doc.setFillColor(255, 255, 255);
+            doc.roundedRect(10, 28, 90, 15, 2, 2, 'F');
+            doc.setTextColor(primaryColor);
+            doc.setFontSize(16);
+            doc.setFont("helvetica", "bold");
+            const titulo = type === 'OS' ? "ORDEM DE SERVIÇO" : "ORÇAMENTO";
+            doc.text(titulo, 15, 38);
+            
+            let y = 55;
+
+            // 2. DADOS CLIENTE
+            // Section Header
+            doc.setFillColor(grayBg);
+            doc.rect(10, y, 190, 8, 'F');
+            doc.setTextColor(primaryColor);
+            doc.setFontSize(10);
+            doc.text("DADOS DO CLIENTE", 12, y + 5);
+            y += 15;
+
+            // Content
+            doc.setTextColor(0, 0, 0);
+            const prefix = type === 'OS' ? 'os' : 'orc';
+            const nome = document.getElementById(prefix+'_nome').value;
+            const cpf = document.getElementById(prefix+'_cpf').value;
+            const tel = document.getElementById(prefix+'_tel').value;
+            const end = document.getElementById(prefix+'_end').value;
+
+            doc.setFont("helvetica", "bold"); doc.text("Nome:", 12, y);
+            doc.setFont("helvetica", "normal"); doc.text(nome, 25, y);
+
+            doc.setFont("helvetica", "bold"); doc.text("CPF/CNPJ:", 120, y);
+            doc.setFont("helvetica", "normal"); doc.text(cpf, 145, y);
+            y += 7;
+
+            doc.setFont("helvetica", "bold"); doc.text("Endereço:", 12, y);
+            doc.setFont("helvetica", "normal"); doc.text(end || "Não informado", 30, y);
+
+            doc.setFont("helvetica", "bold"); doc.text("Telefone:", 120, y);
+            doc.setFont("helvetica", "normal"); doc.text(tel, 145, y);
+            y += 15;
+
+            // 3. DETALHES
+            doc.setFillColor(grayBg);
+            doc.rect(10, y, 190, 8, 'F');
+            doc.setTextColor(primaryColor);
+            doc.setFont("helvetica", "bold");
+            doc.text("DETALHES DO EQUIPAMENTO E SERVIÇO", 12, y + 5);
+            y += 15;
+
+            doc.setTextColor(0,0,0);
+            const equip = document.getElementById(prefix+'_equip').value;
+            const label1 = type === 'OS' ? "Defeito Apresentado:" : "Problema Relatado:";
+            const val1 = type === 'OS' ? document.getElementById('os_defeito').value : document.getElementById('orc_problema').value;
+            
+            doc.setFont("helvetica", "bold"); doc.text("Equipamento:", 12, y);
+            doc.setFont("helvetica", "normal"); doc.text(equip, 40, y);
+            y += 7;
+            
+            doc.setFont("helvetica", "bold"); doc.text(label1, 12, y);
+            doc.setFont("helvetica", "normal"); doc.text(val1, 12, y+5);
+            y += 15;
+
+            const label2 = type === 'OS' ? "Parecer Técnico:" : "Descrição dos Serviços:";
+            const val2 = type === 'OS' ? document.getElementById('os_parecer').value : document.getElementById('orc_desc').value;
+
+            doc.setFont("helvetica", "bold"); doc.text(label2, 12, y);
+            y += 5;
+            doc.setFont("helvetica", "normal");
+            // Wrap text
+            const splitText = doc.splitTextToSize(val2, 180);
+            doc.text(splitText, 12, y);
+            y += (splitText.length * 5) + 10;
+
+            // 4. VALORES
+            // Caixa cinza arredondada
+            doc.setDrawColor(200);
+            doc.setFillColor(252, 252, 252);
+            doc.roundedRect(10, y, 190, 35, 2, 2, 'FD');
+            y += 10;
+
+            let total = 0;
+            if(type === 'OS') {
+                const vprod = document.getElementById('os_val_prod').value || "0,00";
+                const vserv = document.getElementById('os_val_serv').value || "0,00";
+                
+                doc.text("Produtos Utilizados:", 20, y);
+                doc.text("R$ " + vprod, 190, y, { align: 'right' });
+                y += 7;
+                doc.text("Serviços Prestados:", 20, y);
+                doc.text("R$ " + vserv, 190, y, { align: 'right' });
+                
+                // Math
+                const p = parseFloat(vprod.replace('.','').replace(',','.'));
+                const s = parseFloat(vserv.replace('.','').replace(',','.'));
+                total = (p+s).toFixed(2).replace('.',',');
+                
+                y += 5;
+                doc.line(20, y, 190, y); // Line
+                y += 8;
+                doc.setTextColor(primaryColor);
+                doc.setFontSize(12); doc.setFont("helvetica", "bold");
+                doc.text("TOTAL A PAGAR", 20, y);
+                doc.text("R$ " + total, 190, y, { align: 'right' });
+
+            } else {
+                const vvisita = document.getElementById('orc_val_visita').value || "0,00";
+                const vserv = document.getElementById('orc_val_servicos').value || "0,00";
+
+                doc.text("Taxa de Visita Técnica:", 20, y);
+                doc.text("R$ " + vvisita, 190, y, { align: 'right' });
+                y += 7;
+                doc.text("Valor Estimado Serviços/Peças:", 20, y);
+                doc.text("R$ " + vserv, 190, y, { align: 'right' });
+
+                const v = parseFloat(vvisita.replace('.','').replace(',','.'));
+                const s = parseFloat(vserv.replace('.','').replace(',','.'));
+                total = (v+s).toFixed(2).replace('.',',');
+
+                y += 5;
+                doc.line(20, y, 190, y);
+                y += 8;
+                doc.setTextColor(primaryColor);
+                doc.setFontSize(12); doc.setFont("helvetica", "bold");
+                doc.text("TOTAL ESTIMADO", 20, y);
+                doc.text("R$ " + total, 190, y, { align: 'right' });
+            }
+
+            // 5. TERMOS (Se aplicável)
+            y += 20;
+            let imprimirTermos = true;
+            if (type === 'OS') {
+                imprimirTermos = document.getElementById('os_check_garantia').checked;
+            }
+            
+            if (imprimirTermos) {
+                doc.setTextColor(100);
+                doc.setFontSize(8);
+                doc.setFont("helvetica", "bold");
+                doc.text("TERMOS E CONDIÇÕES / OBSERVAÇÕES", 10, y);
+                y += 5;
+                doc.setFont("helvetica", "normal");
+                let termosText = type === 'OS' ? document.getElementById('os_garantia').value : `Validade: ${document.getElementById('orc_validade').value}\nValores sujeitos a alteração.`;
+                const splitTermos = doc.splitTextToSize(termosText, 190);
+                doc.text(splitTermos, 10, y);
+            }
+
+        } else {
+            // --- LÓGICA RECIBO ---
+            const nome = document.getElementById('rec_nome').value;
+            const docType = document.querySelector('input[name="doc_type"]:checked').value;
+            const docNum = document.getElementById('rec_doc_num').value;
+            const valor = document.getElementById('rec_valor').value;
+            const desc = document.getElementById('rec_desc').value;
+            const dataRaw = document.getElementById('rec_data').value;
+
+            // Header simples
+            doc.setTextColor(primaryColor);
+            doc.setFontSize(18);
+            doc.setFont("helvetica", "bold");
+            doc.text("Recibo de prestação de serviço", 105, 40, { align: 'center' });
+
+            // Texto
+            doc.setTextColor(0,0,0);
+            doc.setFontSize(14);
+            doc.setFont("helvetica", "normal");
+            const texto = `Recebi da empresa ${nome}, inscrita sob o ${docType} ${docNum} o valor de R$${valor} referente ao serviço de ${desc}.`;
+            
+            const splitRecibo = doc.splitTextToSize(texto, 160);
+            doc.text(splitRecibo, 25, 80);
+
+            // Data Extenso
+            try {
+                const parts = dataRaw.split('/');
+                const dateObj = new Date(parts[2], parts[1]-1, parts[0]);
+                const options = { year: 'numeric', month: 'long', day: 'numeric' };
+                const dataExtenso = dateObj.toLocaleDateString('pt-BR', options).toUpperCase();
+                doc.text(`RIO DE JANEIRO, ${dataExtenso}.`, 105, 140, { align: 'center' });
+            } catch (e) {
+                doc.text(`RIO DE JANEIRO, ${dataRaw}.`, 105, 140, { align: 'center' });
+            }
+        }
+
+        // 6. ASSINATURA (COMUM A TODOS)
+        const sigData = localStorage.getItem('technicianHubSignature');
+        if(sigData) {
+            // Adiciona imagem (formatos JPEG/PNG suportados pelo base64)
+            // Posição Y: Perto do final da A4 (297mm). Vamos por em 250mm
+            let yAss = type === 'REC' ? 180 : 260;
+            // Centralizar imagem
+            doc.addImage(sigData, 'JPEG', 90, yAss-25, 30, 25); // x, y, w, h
+        }
+
+        // Linha e Nome
+        let yLine = type === 'REC' ? 180 : 260;
+        doc.setDrawColor(0);
+        doc.line(60, yLine, 150, yLine);
+        doc.setTextColor(0,0,0);
+        doc.setFontSize(10);
+        doc.text("Lucas Salgado do Nascimento", 105, yLine + 5, { align: 'center' });
+        doc.text("CPF 158.444.917-93", 105, yLine + 10, { align: 'center' });
+        if(type !== 'REC') {
+            doc.text("Assinatura do Cliente", 40, yLine + 5, { align: 'center' });
+            doc.line(10, yLine, 70, yLine);
+        }
+
+        // Salvar arquivo
+        const nomeArquivo = `${type}_TechnicianHub_${new Date().getTime()}.pdf`;
+        doc.save(nomeArquivo);
+    }
+
+    // Load data on startup
+    window.onload = loadData;
+</script>
+
+</body>
+</html>
