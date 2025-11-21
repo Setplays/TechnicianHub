@@ -91,7 +91,7 @@
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 5px;
-            box-sizing: border-box; /* Garante que padding não aumente largura */
+            box-sizing: border-box; 
             font-family: inherit;
         }
 
@@ -299,7 +299,7 @@ Obrigatório apresentar este documento.</textarea>
         <h4>Configurações</h4>
         <div class="form-group">
             <label>Carregar Assinatura (Imagem):</label>
-            <small>Carregue uma vez, o navegador salvará.</small><br>
+            <small>Carregue uma vez, o navegador salvará. Fundo branco recomendado.</small><br>
             <input type="file" id="signature_file" accept="image/*" onchange="uploadSignature(this)">
             <img id="sig_preview" class="signature-preview" alt="Pré-visualização da Assinatura" style="display:none;">
             <button style="background:#888; width:auto; padding:5px 10px; font-size:0.8rem;" onclick="clearSignature()">Remover Assinatura</button>
@@ -389,7 +389,7 @@ Obrigatório apresentar este documento.</textarea>
         const data = {};
         inputs.forEach(el => {
             if (el.type === 'checkbox' || el.type === 'radio') {
-                if (el.checked) data[el.id || el.name] = el.value; // Para radio, salva o value do checked
+                if (el.checked) data[el.id || el.name] = el.value; 
                 if (el.type === 'checkbox') data[el.id] = el.checked;
             } else if (el.type !== 'file') {
                 data[el.id] = el.value;
@@ -412,7 +412,6 @@ Obrigatório apresentar este documento.</textarea>
                     if (el.type === 'checkbox') el.checked = data[key];
                     else el.value = data[key];
                 } else {
-                    // Handle radios by name
                     const radios = document.getElementsByName(key);
                     radios.forEach(r => {
                         if (r.value === data[key]) r.checked = true;
@@ -453,7 +452,7 @@ Obrigatório apresentar este documento.</textarea>
     // --- GERAÇÃO DE PDF (JSPDF) ---
     async function generatePDF(type) {
         const { jsPDF } = window.jspdf;
-        const doc = new jsPDF({ unit: 'mm', format: 'a4' }); // A4 size: 210 x 297 mm
+        const doc = new jsPDF({ unit: 'mm', format: 'a4' }); 
 
         // Cores
         const colors = {
@@ -464,7 +463,6 @@ Obrigatório apresentar este documento.</textarea>
         const primaryColor = colors[type] || '#000';
         const grayBg = '#f3f4f6';
 
-        // DADOS TÉCNICO (FIXO)
         const tecnico = {
             nome: "LUCAS SALGADO",
             cargo: "TÉCNICO DE INFORMÁTICA",
@@ -505,7 +503,6 @@ Obrigatório apresentar este documento.</textarea>
             let y = 55;
 
             // 2. DADOS CLIENTE
-            // Section Header
             doc.setFillColor(grayBg);
             doc.rect(10, y, 190, 8, 'F');
             doc.setTextColor(primaryColor);
@@ -513,7 +510,6 @@ Obrigatório apresentar este documento.</textarea>
             doc.text("DADOS DO CLIENTE", 12, y + 5);
             y += 15;
 
-            // Content
             doc.setTextColor(0, 0, 0);
             const prefix = type === 'OS' ? 'os' : 'orc';
             const nome = document.getElementById(prefix+'_nome').value;
@@ -562,13 +558,11 @@ Obrigatório apresentar este documento.</textarea>
             doc.setFont("helvetica", "bold"); doc.text(label2, 12, y);
             y += 5;
             doc.setFont("helvetica", "normal");
-            // Wrap text
             const splitText = doc.splitTextToSize(val2, 180);
             doc.text(splitText, 12, y);
             y += (splitText.length * 5) + 10;
 
             // 4. VALORES
-            // Caixa cinza arredondada
             doc.setDrawColor(200);
             doc.setFillColor(252, 252, 252);
             doc.roundedRect(10, y, 190, 35, 2, 2, 'FD');
@@ -585,13 +579,12 @@ Obrigatório apresentar este documento.</textarea>
                 doc.text("Serviços Prestados:", 20, y);
                 doc.text("R$ " + vserv, 190, y, { align: 'right' });
                 
-                // Math
                 const p = parseFloat(vprod.replace('.','').replace(',','.'));
                 const s = parseFloat(vserv.replace('.','').replace(',','.'));
                 total = (p+s).toFixed(2).replace('.',',');
                 
                 y += 5;
-                doc.line(20, y, 190, y); // Line
+                doc.line(20, y, 190, y); 
                 y += 8;
                 doc.setTextColor(primaryColor);
                 doc.setFontSize(12); doc.setFont("helvetica", "bold");
@@ -621,7 +614,7 @@ Obrigatório apresentar este documento.</textarea>
                 doc.text("R$ " + total, 190, y, { align: 'right' });
             }
 
-            // 5. TERMOS (Se aplicável)
+            // 5. TERMOS
             y += 20;
             let imprimirTermos = true;
             if (type === 'OS') {
@@ -641,7 +634,7 @@ Obrigatório apresentar este documento.</textarea>
             }
 
         } else {
-            // --- LÓGICA RECIBO ---
+            // RECIBO
             const nome = document.getElementById('rec_nome').value;
             const docType = document.querySelector('input[name="doc_type"]:checked').value;
             const docNum = document.getElementById('rec_doc_num').value;
@@ -649,13 +642,11 @@ Obrigatório apresentar este documento.</textarea>
             const desc = document.getElementById('rec_desc').value;
             const dataRaw = document.getElementById('rec_data').value;
 
-            // Header simples
             doc.setTextColor(primaryColor);
             doc.setFontSize(18);
             doc.setFont("helvetica", "bold");
             doc.text("Recibo de prestação de serviço", 105, 40, { align: 'center' });
 
-            // Texto
             doc.setTextColor(0,0,0);
             doc.setFontSize(14);
             doc.setFont("helvetica", "normal");
@@ -664,7 +655,6 @@ Obrigatório apresentar este documento.</textarea>
             const splitRecibo = doc.splitTextToSize(texto, 160);
             doc.text(splitRecibo, 25, 80);
 
-            // Data Extenso
             try {
                 const parts = dataRaw.split('/');
                 const dateObj = new Date(parts[2], parts[1]-1, parts[0]);
@@ -676,27 +666,41 @@ Obrigatório apresentar este documento.</textarea>
             }
         }
 
-        // 6. ASSINATURA (COMUM A TODOS)
+        // 6. ASSINATURA (LÓGICA CORRIGIDA PARA SEPARAR)
         const sigData = localStorage.getItem('technicianHubSignature');
-        if(sigData) {
-            // Adiciona imagem (formatos JPEG/PNG suportados pelo base64)
-            // Posição Y: Perto do final da A4 (297mm). Vamos por em 250mm
-            let yAss = type === 'REC' ? 180 : 260;
-            // Centralizar imagem
-            doc.addImage(sigData, 'JPEG', 90, yAss-25, 30, 25); // x, y, w, h
-        }
-
-        // Linha e Nome
-        let yLine = type === 'REC' ? 180 : 260;
+        let yLine = type === 'REC' ? 180 : 270;
+        
         doc.setDrawColor(0);
-        doc.line(60, yLine, 150, yLine);
         doc.setTextColor(0,0,0);
         doc.setFontSize(10);
-        doc.text("Lucas Salgado do Nascimento", 105, yLine + 5, { align: 'center' });
-        doc.text("CPF 158.444.917-93", 105, yLine + 10, { align: 'center' });
-        if(type !== 'REC') {
-            doc.text("Assinatura do Cliente", 40, yLine + 5, { align: 'center' });
-            doc.line(10, yLine, 70, yLine);
+
+        if (type === 'REC') {
+            // Recibo: Centralizado (Lucas apenas)
+            doc.line(60, yLine, 150, yLine);
+            doc.text("Lucas Salgado do Nascimento", 105, yLine + 5, { align: 'center' });
+            doc.text("CPF 158.444.917-93", 105, yLine + 10, { align: 'center' });
+            
+            // Imagem Assinatura (Centro)
+            if(sigData) {
+                doc.addImage(sigData, 'JPEG', 90, yLine-25, 30, 25); 
+            }
+
+        } else {
+            // OS e Orçamento: Separados (Cliente Esquerda, Lucas Direita)
+            
+            // Cliente (Esquerda)
+            doc.line(20, yLine, 90, yLine);
+            doc.text("Assinatura do Cliente", 55, yLine + 5, { align: 'center' });
+
+            // Lucas (Direita)
+            doc.line(120, yLine, 190, yLine);
+            doc.text("Lucas Salgado do Nascimento", 155, yLine + 5, { align: 'center' });
+            doc.text("CPF 158.444.917-93", 155, yLine + 10, { align: 'center' });
+
+            // Imagem Assinatura (Direita)
+            if(sigData) {
+                doc.addImage(sigData, 'JPEG', 140, yLine-25, 30, 25);
+            }
         }
 
         // Salvar arquivo
@@ -704,7 +708,6 @@ Obrigatório apresentar este documento.</textarea>
         doc.save(nomeArquivo);
     }
 
-    // Load data on startup
     window.onload = loadData;
 </script>
 
